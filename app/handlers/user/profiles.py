@@ -21,7 +21,7 @@ router = Router()
 router.name = 'profiles'
 
 
-# Создадим кэш для файлов
+# Створимо кеш для файлів
 IMAGE_CACHE = {}
 
 @dataclass
@@ -32,17 +32,17 @@ class ProfileData:
 
 
 async def load_image(filepath: str) -> BufferedInputFile:
-    """Загружает изображение в память или берет из кэша"""
+    """Завантажує зображення в пам'ять або бере з кешу"""
     if filepath not in IMAGE_CACHE:
-        # Открываем и оптимизируем изображение
+        # Відкриваємо та оптимізуємо зображення
         with Image.open(filepath) as img:
-            # Конвертируем в RGB если изображение в RGBA
+            # Конвертуємо в RGB, якщо зображення в RGBA
             if img.mode == 'RGBA':
                 img = img.convert('RGB')
             
-            # Создаем буфер для сохранения оптимизированного изображения
+            # Створюємо буфер для збереження оптимізованого зображення
             buffer = io.BytesIO()
-            # Сохраняем с оптимизацией качества (quality=70 дает хороший баланс между размером и качеством)
+            # Зберігаємо з оптимізацією якості (quality=70 дає хороший баланс між розміром та якістю)
             img.save(buffer, format='JPEG', quality=70, optimize=True)
             content = buffer.getvalue()
             IMAGE_CACHE[filepath] = content
@@ -96,11 +96,11 @@ async def setAvatar(message: Message, state: FSMContext, language_code: str):
             await message.answer("Error: Image file not found")
             return
         
-        # Сразу сохраняем первую картинку в состояние
+        # Відразу зберігаємо першу картинку в стан
         await state.update_data(
             img_files=img_files,
             current_index=current_index,
-            selected_img=selected_file  # Добавляем выбранный файл в состояние
+            selected_img=selected_file  # Додаємо вибраний файл у стан
         )
         
         photo = await load_image(photo_path)
@@ -132,7 +132,7 @@ async def navigate_avatar(callback: CallbackQuery, state: FSMContext, language_c
     selected_file = img_files[current_index]
     photo_path = os.path.join(IMG_FOLDER, selected_file)
     
-    # Сохраняем текущую картинку в состояние при каждой навигации
+    # Зберігаємо поточну картинку в стан при кожній навігації
     await state.update_data(
         current_index=current_index,
         selected_img=selected_file
@@ -155,9 +155,9 @@ async def navigate_avatar(callback: CallbackQuery, state: FSMContext, language_c
 
 async def doneAvatar(callback: CallbackQuery, state: FSMContext, language_code: str, is_new_user: bool = False):
     """
-    Общая логика сохранения аватара
+    Загальна логіка збереження аватара
     Args:
-        is_new_user: True если это новый пользователь, False если редактирование существующего
+        is_new_user: True, якщо це новий користувач, False, якщо редагування існуючого
     """
     data = await state.get_data()
     selected_img = data.get('selected_img', '')
@@ -191,19 +191,19 @@ async def doneAvatar(callback: CallbackQuery, state: FSMContext, language_code: 
 
 @router.callback_query(F.data == "done_img")
 async def doneNewAvatar(callback: CallbackQuery, state: FSMContext, language_code: str):
-    """Обработчик для сохранения аватара нового пользователя"""
+    """Обробник для збереження аватара нового користувача"""
     is_saved = await doneAvatar(callback, state, language_code, is_new_user=True)
     if is_saved:
-        # Удаляем сообщение с выбором аватара
+        # Видаляємо повідомлення з вибором аватара
         await callback.message.delete()
         
-        # Отправляем приветственное сообщение
+        # Надсилаємо вітальне повідомлення
         await callback.message.answer(
             text=L10nMessage.get_message(language_code, "characterAdded"),
             parse_mode=ParseMode.HTML
         )
         
-        # Отправляем стартовое сообщение с клавиатурой
+        # Надсилаємо стартове повідомлення з клавіатурою
         await callback.message.answer(
             text=L10nMessage.get_message(language_code, "start"),
             parse_mode=ParseMode.HTML,
@@ -213,7 +213,7 @@ async def doneNewAvatar(callback: CallbackQuery, state: FSMContext, language_cod
         await state.clear()
         await state.set_state(User.startMenu)
     else:
-        # Просто показываем всплывающее уведомление об ошибке
+        # Просто показуємо спливаюче повідомлення про помилку
         await callback.answer("Error saving character")
     
     await callback.answer()
@@ -222,7 +222,7 @@ async def doneNewAvatar(callback: CallbackQuery, state: FSMContext, language_cod
 
 @router.callback_query(F.data == "doneEditImg")
 async def doneEditAvatar(callback: CallbackQuery, state: FSMContext, language_code: str):
-    """Обработчик для сохранения отредактированного аватара"""
+    """Обробник для збереження відредагованого аватара"""
     is_saved = await doneAvatar(callback, state, language_code, is_new_user=False)
     if is_saved:
         tg_id = callback.from_user.id
@@ -264,7 +264,7 @@ async def changeName(message: Message, state: FSMContext, language_code: str):
         await changeNameDB(message.from_user.id, new_name)
         await message.answer(L10nMessage.get_message(language_code, "nameChanged"))
         
-        # Получаем и отправляем обновленный профиль
+        # Отримуємо та надсилаємо оновлений профіль
         profile_data = await profileMessage(message, state, language_code, message.from_user.id)
         if profile_data:
             await message.answer_photo(
@@ -314,7 +314,7 @@ async def editAvatar(callback: CallbackQuery, state: FSMContext, language_code: 
         selected_file = img_files[current_index]
         photo_path = os.path.join(IMG_FOLDER, selected_file)
         
-        # Сразу сохраняем первую картинку в состояние
+        # Відразу зберігаємо першу картинку в стан
         await state.update_data(
             img_files=img_files,
             current_index=current_index,
@@ -342,7 +342,7 @@ async def editAvatar(callback: CallbackQuery, state: FSMContext, language_code: 
 @router.callback_query(F.data == "leaderboard")
 async def leaderboardMessage(callback: CallbackQuery, state: FSMContext, language_code: str):
     leaderboard = await generateLeaderboard()
-    # Отправляем новое сообщение в чат
+    # Надсилаємо нове повідомлення в чат
     await callback.message.answer(
         text=leaderboard,
         parse_mode=ParseMode.HTML
@@ -370,7 +370,7 @@ async def profileMessage(message: Message, state: FSMContext, language_code: str
     level = (user.experience // 1000) + 1
     experience = user.experience
 
-    # Определяем префикс для аватара в зависимости от уровня
+    # Визначаємо префікс для аватара залежно від рівня
     if level >= LEVEL[4]:
         avatar_prefix = str(LEVEL[4])
     elif level >= LEVEL[3]:
@@ -380,16 +380,16 @@ async def profileMessage(message: Message, state: FSMContext, language_code: str
     else:
         avatar_prefix = str(LEVEL[1])
 
-    # Получаем имя файла аватара из БД
+    # Отримуємо ім'я файлу аватара з БД
     db_avatar = user.avatar if user.avatar else ""
     if not db_avatar.endswith('.png'):
         db_avatar += '.png'
     
-    # Формируем путь к файлу аватара
+    # Формуємо шлях до файлу аватара
     avatar_filename = f"{avatar_prefix}_{db_avatar}"
     avatar_file = os.path.join(IMG_FOLDER, avatar_filename)
     
-    # Если файл не найден, пробуем использовать аватар первого уровня
+    # Якщо файл не знайдено, пробуємо використати аватар першого рівня
     if not os.path.isfile(avatar_file):
         avatar_filename = f"1_{db_avatar}"
         avatar_file = os.path.join(IMG_FOLDER, avatar_filename)
@@ -436,4 +436,4 @@ async def backToProfile(callback: CallbackQuery, state: FSMContext, language_cod
 
     else:
         await callback.message.answer("Error loading profile")
-    await callback.answer()
+    await callback.answer()k.answer()

@@ -3,7 +3,7 @@ from database.repositories import resetHabit
 
 async def resetTodayHabits():
     habitsCount, usersCount = await resetHabit()
-    print(f"\n\n\n\nИзменено {habitsCount} привычек у {usersCount} пользователей.\n\n\n\n")
+    print(f"Змінено {habitsCount} звичок у {usersCount} користувачів.")
 
 
 def schedulerResetHabits(scheduler):

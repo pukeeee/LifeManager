@@ -1,17 +1,17 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Date, BigInteger
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine, AsyncSession
 
 from app.core.utils.config import DB_URL
 
-# Создаем движок с правильными настройками
+# Створюємо двигун з правильними налаштуваннями
 engine = create_async_engine(
     url=DB_URL,
-    echo=True,
+    echo=False,
     pool_pre_ping=True
 )
 
-# Создаем фабрику сессий
+# Створюємо фабрику сесій
 async_session = async_sessionmaker(
     engine,
     class_=AsyncSession,
@@ -69,7 +69,7 @@ class Statistic(Base):
     __tablename__ = "statistics"
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    date: Mapped[int] = mapped_column(Integer)  # Unix timestamp
+    date: Mapped[int] = mapped_column(Integer)  # мітка часу Unix
     tasks_count: Mapped[int] = mapped_column(Integer, default=0)
     habits_count: Mapped[int] = mapped_column(Integer, default=0)
 

@@ -40,7 +40,7 @@ async def check_subscription(callback: CallbackQuery, state: FSMContext, languag
                 )
                 await state.set_state(User.startMenu)
             else:
-                # Для нового пользователя или если не заполнены данные
+                # Для нового користувача або якщо дані не заповнені
                 await state.set_state(Profile.setName)
                 await callback.message.answer(
                     text=L10nMessage.get_message(language_code, "newCharacter"),
@@ -63,4 +63,4 @@ async def check_subscription(callback: CallbackQuery, state: FSMContext, languag
         await callback.answer(
             L10nMessage.get_message(language_code, "subscription"),
             show_alert=True
-        )
+        )     )    )

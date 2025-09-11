@@ -15,7 +15,7 @@ async def adminKb():
 
 
 async def broadcastTypeKeyboard():
-    """Клавиатура выбора типа рассылки"""
+    """Клавіатура вибору типу розсилки"""
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -32,7 +32,7 @@ async def broadcastTypeKeyboard():
 
 
 async def checkBroadcastKeyboard():
-    """Клавиатура подтверждения рассылки"""
+    """Клавіатура підтвердження розсилки"""
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [

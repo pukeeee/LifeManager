@@ -138,7 +138,7 @@ class TaskRepository(BaseRepository):
 
 
 ################################################
-"""Функции-обертки для обратной совместимости"""
+"""Функції-обгортки для зворотної сумісності"""
 ################################################
 
 
@@ -150,9 +150,9 @@ async def getCompletedTask(tg_id: int) -> List[Task]:
     async with TaskRepository() as repo:
         return await repo.get_completed_tasks(tg_id)
 
-async def addTask(tg_id: int, text: str, complexity: str, taskExp: int) -> bool:
+async def addTask(tg_id: int, text: str, taskExp: int, complexity: str) -> bool:
     async with TaskRepository() as repo:
-        return await repo.add_task(tg_id, text, complexity, taskExp)
+        return await repo.add_task(tg_id, text, taskExp, complexity)
 
 async def checkTasksCount(tg_id: int) -> bool:
     async with TaskRepository() as repo:

@@ -9,6 +9,7 @@ from database.repositories import (getUserDB, resetHabit, changeUserStatus
 from app.states import User, Profile, Admin
 from app.keyboards import (startReplyKb, adminKb
 )
+from app.core.utils.config import ADMIN_TG_ID
 
 
 # import logging
@@ -22,8 +23,8 @@ router.name = 'commands'
 @router.message(CommandStart())
 async def startCommand(message: Message, language_code: str, state: FSMContext):
     user = await getUserDB(message.from_user.id)
-    
-    if user and user.user_name and user.avatar:  # Проверяем что пользователь полностью настроен
+
+    if user and user.user_name and user.avatar:  # Перевіряємо, що користувач повністю налаштований
         await message.answer(
             text=L10nMessage.get_message(language_code, "start"),
             parse_mode=ParseMode.HTML,
@@ -31,9 +32,9 @@ async def startCommand(message: Message, language_code: str, state: FSMContext):
         )
         await changeUserStatus(message.from_user.id)
         await state.set_state(User.startMenu)
-        
+
     else:
-        # Для нового пользователя или если не заполнены данные
+        # Для нового користувача або якщо дані не заповнені
         await state.set_state(Profile.setName)
         await message.answer(
             text=L10nMessage.get_message(language_code, "newCharacter"),
@@ -47,7 +48,7 @@ async def donateComand(message: Message, command: CommandObject, language_code: 
     if command.args is None or not command.args.isdigit() or not 1 <= int(command.args) <= 2500:
         await message.answer(L10nMessage.get_message(language_code, "donate"), parse_mode=ParseMode.HTML)
         return
-    
+
     amount = int(command.args)
     prices = [LabeledPrice(label="XTR", amount=amount)]
     await message.answer_invoice(
@@ -76,18 +77,18 @@ async def on_successfull_payment(message: Message, language_code: str):
 
 @router.message(Command("reset_habits"))
 async def reset_habits(message: Message):
-    if message.from_user.id == 514373294:
+    if message.from_user.id == ADMIN_TG_ID:
         await resetHabit()
-        await message.answer("✅ Привычки успешно сброшены!")
-        
+        await message.answer("✅ Звички успішно скинуті!")
+
     else:
-        await message.answer("No no no no buddy\nWrong way") 
+        await message.answer("No no no no buddy\nWrong way")
 
 
 
 @router.message(Command("help"))
 async def help_command(message: Message):
-    await message.answer("support: @tg_support03")
+    await message.answer("support: ...")
 
 
 @router.message(Command("info"))

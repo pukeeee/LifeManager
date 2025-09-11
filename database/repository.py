@@ -5,77 +5,77 @@ from contextlib import asynccontextmanager
 
 class BaseRepository:
     """
-    Базовый класс-репозиторий для работы с асинхронными сессиями SQLAlchemy.
-    Позволяет автоматически управлять сессией и транзакциями.
+    Базовий клас-репозиторій для роботи з асинхронними сесіями SQLAlchemy.
+    Дозволяє автоматично керувати сесією та транзакціями.
     """
     
     
     def __init__(self):
         """
-        Инициализирует объект, но не создает сессию сразу.
+        Ініціалізує об'єкт, але не створює сесію відразу.
         """
-        self._session: AsyncSession | None = None  # Переменная для хранения сессии
-        self._transaction_in_progress: bool = False  # Флаг для отслеживания состояния транзакции
+        self._session: AsyncSession | None = None  # Змінна для зберігання сесії
+        self._transaction_in_progress: bool = False  # Прапорець для відстеження стану транзакції
     
     
     async def __aenter__(self):
         """
-        Асинхронный контекстный менеджер для работы с сессией.
-        Использование: `async with BaseRepository() as repo:`
+        Асинхронний контекстний менеджер для роботи з сесією.
+        Використання: `async with BaseRepository() as repo:`
         """
-        self._session = async_session()  # Создание новой сессии
-        return self  # Возвращает сам объект, чтобы можно было обращаться к `self.session`
+        self._session = async_session()  # Створення нової сесії
+        return self  # Повертає сам об'єкт, щоб можна було звертатися до `self.session`
     
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """
-        Закрытие сессии при выходе из контекстного менеджера.
-        Если произошла ошибка (exc_type != None), выполняется откат изменений (rollback).
-        Если ошибок нет, выполняется коммит (commit).
+        Закриття сесії при виході з контекстного менеджера.
+        Якщо сталася помилка (exc_type != None), виконується відкат змін (rollback).
+        Якщо помилок немає, виконується коміт (commit).
         """
         if self._session:
             try:
                 if exc_type:
-                    await self._session.rollback()  # Откат, если была ошибка
+                    await self._session.rollback()  # Відкат, якщо була помилка
                 else:
-                    await self._session.commit()  # Фиксируем изменения в БД
+                    await self._session.commit()  # Фіксуємо зміни в БД
             finally:
-                await self._session.close()  # Закрываем сессию после работы
-                self._session = None  # Очищаем переменную
-                self._transaction_in_progress = False  # Сбрасываем флаг транзакции
+                await self._session.close()  # Закриваємо сесію після роботи
+                self._session = None  # Очищаємо змінну
+                self._transaction_in_progress = False  # Скидаємо прапорець транзакції
     
     
     
     @property
     def session(self) -> AsyncSession:
         """
-        Свойство для получения текущей сессии.
-        Если сессия не инициализирована, выбрасывается ошибка.
+        Властивість для отримання поточної сесії.
+        Якщо сесія не ініціалізована, викидається помилка.
         """
         if not self._session:
             raise RuntimeError("Session not initialized. Use 'async with' context")  
-        return self._session  # Возвращаем сессию, если она активна
+        return self._session  # Повертаємо сесію, якщо вона активна
     
     
     
     @asynccontextmanager
     async def begin(self):
         """
-        Контекстный менеджер для работы с транзакциями.
-        Позволяет использовать `async with repo.begin():`, чтобы вручную управлять транзакциями.
+        Контекстний менеджер для роботи з транзакціями.
+        Дозволяє використовувати `async with repo.begin():`, щоб вручну керувати транзакціями.
         """
         if not self._session:
-            raise RuntimeError("Session not initialized")  # Проверка на наличие сессии
+            raise RuntimeError("Session not initialized")  # Перевірка на наявність сесії
         
         if not self._transaction_in_progress:
-            self._transaction_in_progress = True  # Устанавливаем флаг начала транзакции
-            async with self._session.begin() as transaction:  # Начинаем транзакцию
+            self._transaction_in_progress = True  # Встановлюємо прапорець початку транзакції
+            async with self._session.begin() as transaction:  # Починаємо транзакцію
                 try:
-                    yield  # Выполняем код внутри `async with repo.begin():`
+                    yield  # Виконуємо код усередині `async with repo.begin():`
                 except Exception:
-                    await transaction.rollback()  # В случае ошибки делаем откат
-                    raise  # Пробрасываем исключение дальше
+                    await transaction.rollback()  # У разі помилки робимо відкат
+                    raise  # Прокидаємо виняток далі
                 finally:
-                    self._transaction_in_progress = False  # Сбрасываем флаг транзакции
+                    self._transaction_in_progress = False  # Скидаємо прапорець транзакції
         else:
-            yield  # Если транзакция уже запущена, продолжаем её использовать без создания новой
+            yield  # Якщо транзакція вже запущена, продовжуємо її використовувати без створення нової

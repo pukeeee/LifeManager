@@ -184,7 +184,8 @@ async def setExpExceptions(message: Message, state: FSMContext, language_code: s
 
 @router.callback_query(F.data.startswith("deltask_"))
 async def delete_task(callback: CallbackQuery, state: FSMContext, language_code: str):
-    await deleteTask(callback.data.split("_")[1])
+    task_id = int(callback.data.split("_")[1])
+    await deleteTask(task_id)
     await callback.message.edit_text(text = Message.get_message(language_code, "deleteTask"),
                                     reply_markup = await delTasks(callback.from_user.id))
 
@@ -192,7 +193,8 @@ async def delete_task(callback: CallbackQuery, state: FSMContext, language_code:
 
 @router.callback_query(F.data.startswith("delCompletedTask_"))
 async def delete_completed_task(callback: CallbackQuery, state: FSMContext, language_code: str):
-    await deleteTask(callback.data.split("_")[1])
+    task_id = int(callback.data.split("_")[1])
+    await deleteTask(task_id)
     await callback.message.edit_text(text = Message.get_message(language_code, "deleteTask"),
                                     reply_markup = await delCompletedTasks(callback.from_user.id))
 
@@ -201,7 +203,7 @@ async def delete_completed_task(callback: CallbackQuery, state: FSMContext, lang
 @router.callback_query(F.data.startswith("edittask_"))
 async def edit_task(callback: CallbackQuery, state: FSMContext, language_code: str):
     await callback.answer("✅")
-    taskId = callback.data.split("_")[1]
+    taskId = int(callback.data.split("_")[1])
     task = await getTaskById(taskId)
     await state.set_state(Task.taskEdit)
     await state.update_data(taskId = taskId)
@@ -210,11 +212,13 @@ async def edit_task(callback: CallbackQuery, state: FSMContext, language_code: s
 
 
 @router.callback_query(F.data.startswith("completetask_"))
-async def delete_task(callback: CallbackQuery, state: FSMContext, language_code: str):
+async def complete_task(callback: CallbackQuery, state: FSMContext, language_code: str):
     await callback.answer(Message.get_message(language_code, "taskCompleted"))
-    await markTaskAsCompleted(callback.data.split("_")[1], callback.from_user.id)
+    task_id = int(callback.data.split("_")[1])
+    await markTaskAsCompleted(task_id, callback.from_user.id)
     await callback.message.edit_text(text = Message.get_message(language_code, "completeTasks"),
                                     reply_markup = await completeTasksKB(callback.from_user.id))
+
 
 
 
@@ -291,7 +295,7 @@ async def editTaskExpHandler(callback: CallbackQuery, state: FSMContext, languag
     
     taskData = await saveTask(complexity, state, language_code)
     data = await state.get_data()
-    await editTaskInDB(data["taskId"], taskData["taskText"], taskData["taskExp"], complexity)
+    await editTaskInDB(int(data["taskId"]), taskData["taskText"], taskData["taskExp"], complexity)
     await state.clear()
     await state.set_state(User.todo)
     taskListMessage = await getUncompletedTasks(language_code, callback.from_user.id)

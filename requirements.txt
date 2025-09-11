@@ -1,0 +1,10 @@
+aiogram
+fluent.runtime
+SQLAlchemy
+asyncpg
+psycopg2-binary
+python-dotenv
+redis
+apscheduler
+alembic
+Pillow

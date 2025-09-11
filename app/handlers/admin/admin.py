@@ -22,7 +22,7 @@ async def handle_broadcast(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "broadcast_text")
 async def start_text_broadcast(callback: CallbackQuery, state: FSMContext):
-    """Начало создания текстовой рассылки"""
+    """Початок створення текстової розсилки"""
     await callback.message.edit_text("Send message text:")
     await state.set_state(Admin.broadcast_text)
     await callback.answer()
@@ -31,7 +31,7 @@ async def start_text_broadcast(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "broadcast_pic")
 async def start_pic_broadcast(callback: CallbackQuery, state: FSMContext):
-    """Начало создания рассылки с картинкой"""
+    """Початок створення розсилки з картинкою"""
     await callback.message.edit_text("Send message text first:")
     await state.set_state(Admin.broadcast_text)
     await state.update_data(with_picture=True)
@@ -41,7 +41,7 @@ async def start_pic_broadcast(callback: CallbackQuery, state: FSMContext):
 
 @router.message(Admin.broadcast_text)
 async def handle_broadcast_text(message: Message, state: FSMContext):
-    """Обработка текста рассылки"""
+    """Обробка тексту розсилки"""
     broadcast_text = message.html_text
 
     if len(broadcast_text) > 500:
@@ -66,7 +66,7 @@ async def handle_broadcast_text(message: Message, state: FSMContext):
 
 @router.message(Admin.broadcast_pic)
 async def handle_broadcast_pic(message: Message, state: FSMContext):
-    """Обработка картинки для рассылки"""
+    """Обробка картинки для розсилки"""
     if not message.photo:
         await message.answer("Please send a picture")
         return
@@ -90,7 +90,7 @@ async def handle_broadcast_pic(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "send_broadcast")
 async def send_broadcast(callback: CallbackQuery, state: FSMContext):
-    """Отправка рассылки всем пользователям"""
+    """Відправка розсилки всім користувачам"""
     try:
         data = await state.get_data()
         broadcast_text = data.get("broadcast_text")
@@ -120,8 +120,8 @@ async def send_broadcast(callback: CallbackQuery, state: FSMContext):
                 await changeErrorUserStatus(user_id)
                 error_count += 1
 
-        # Отправляем новое сообщение со статистикой вместо редактирования
-        await callback.message.delete()  # Удаляем сообщение с превью
+        # Надсилаємо нове повідомлення зі статистикою замість редагування
+        await callback.message.delete()  # Видаляємо повідомлення з прев'ю
         await callback.message.answer(
             f"Broadcast completed!\n"
             f"✅ Successfully sent: {sent_count}\n"
@@ -139,7 +139,7 @@ async def send_broadcast(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "cancel_broadcast")
 async def cancel_broadcast(callback: CallbackQuery, state: FSMContext):
-    """Отмена рассылки"""
+    """Скасування розсилки"""
     await state.clear()
     await callback.message.edit_text("Broadcast cancelled")
     await callback.answer()
@@ -148,7 +148,7 @@ async def cancel_broadcast(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "back_to_admin")
 async def back_to_admin(callback: CallbackQuery, state: FSMContext):
-    """Возвращение в главное меню админа"""
+    """Повернення до головного меню адміна"""
     await state.set_state(Admin.admin)
     
     await callback.message.edit_text("Admin panel", reply_markup = await adminKb())

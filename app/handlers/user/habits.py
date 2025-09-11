@@ -94,7 +94,8 @@ async def backToHabitsList(callback: CallbackQuery, language_code: str):
 @router.callback_query(F.data.startswith("delhabit_"))
 async def delete_habit(callback: CallbackQuery, language_code: str):
     await callback.answer("✅")
-    await deleteHabit(callback.data.split("_")[1])
+    habit_id = int(callback.data.split("_")[1])
+    await deleteHabit(habit_id)
     await callback.message.edit_text(text = Message.get_message(language_code, "deleteHabit"), 
                                     reply_markup = await deleteHabits(callback.from_user.id))
 
@@ -103,7 +104,7 @@ async def delete_habit(callback: CallbackQuery, language_code: str):
 @router.callback_query(F.data.startswith("edithabit_"))
 async def edit_habit(callback: CallbackQuery, language_code: str, state: FSMContext):
     await callback.answer("✏️")
-    habitId = callback.data.split("_")[1]
+    habitId = int(callback.data.split("_")[1])
     await getHabitById(habitId)
     await state.update_data(habitId = habitId)
     await state.set_state(Habit.editHabitText)
@@ -198,7 +199,7 @@ async def addHabit_handler(message: Message, state: FSMContext, language_code: s
     limit = await checkHabitsCount(message.from_user.id)
     
     if limit is None:
-        await message.answer("Произошла ошибка при проверке лимита привычек. Пожалуйста, попробуйте позже.")
+        await message.answer("Сталася помилка під час перевірки ліміту звичок. Будь ласка, спробуйте пізніше.")
         return
     
     if limit == False:
@@ -240,19 +241,19 @@ async def addHabitExp_message(message: Message, state: FSMContext, language_code
         complexity = message.text
         await processHabitExp(message.from_user.id, complexity, state, language_code, message)
     else:
-        await message.answer("Пожалуйста, выберите сложность из предложенных кнопок.")
+        await message.answer("Будь ласка, оберіть складність із запропонованих кнопок.")
 
 
 async def processHabitExp(user_id: int, complexity: str, state: FSMContext, language_code: str, message: Message, is_edit: bool = False):
     habitData = await saveHabit(complexity, state, language_code)
     
     if not habitData.get("habitText") or not habitData.get("habitDays") or not habitData.get("habitExp"):
-        await message.answer("Ошибка: данные привычки не найдены. Пожалуйста, попробуйте снова.")
+        await message.answer("Помилка: дані звички не знайдено. Будь ласка, спробуйте знову.")
         return
     
     if is_edit:
         habit_data = await state.get_data()
-        habitId = habit_data.get("habitId")
+        habitId = int(habit_data.get("habitId"))
         await editHabit(habitId, habitData["habitText"], habitData["habitDays"], habitData["habitExp"], complexity)
         await state.clear()
     else:
@@ -290,14 +291,14 @@ async def editHabitExp_callback(callback: CallbackQuery, state: FSMContext, lang
     habitData = await saveHabit(complexity, state, language_code)
     
     if not habitData:
-        await callback.message.answer("Ошибка: данные привычки не найдены. Пожалуйста, попробуйте снова.")
+        await callback.message.answer("Помилка: дані звички не знайдено. Будь ласка, спробуйте знову.")
         return
     
     habit_data = await state.get_data()
-    habitId = habit_data.get("habitId")
+    habitId = int(habit_data.get("habitId"))
     
     if not habitId:
-        await callback.message.answer("Ошибка: ID привычки не найден. Пожалуйста, попробуйте снова.")
+        await callback.message.answer("Помилка: ID звички не знайдено. Будь ласка, спробуйте знову.")
         return
     
     await editHabit(habitId, habitData["habitText"], habitData["habitDays"], habitData["habitExp"], complexity)
@@ -317,7 +318,7 @@ async def editHabitExp_message(message: Message, state: FSMContext, language_cod
         complexity = message.text
         await processHabitExp(message.from_user.id, complexity, state, language_code, message, is_edit=True)
     else:
-        await message.answer("Пожалуйста, выберите сложность из предложенных кнопок.")
+        await message.answer("Будь ласка, оберіть складність із запропонованих кнопок.")
 
 
 
@@ -385,7 +386,7 @@ async def daysSelection(callback: CallbackQuery, state: FSMContext, language_cod
 
 @router.callback_query(F.data.startswith("completedHabit_"))
 async def completeTodayHabit(callback: CallbackQuery, language_code: str):
-    habitId = callback.data.split("_")[1]
+    habitId = int(callback.data.split("_")[1])
     habitExp = callback.data.split("_")[2]
     await markHabitAsCompleted(habitId, callback.from_user.id)
     habitText = Message.get_message(language_code, "habitCompleted")

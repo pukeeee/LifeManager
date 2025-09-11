@@ -41,19 +41,19 @@ class ProfileRepository(BaseRepository):
 
     async def save_character(self, tg_id: int, user_name: str, avatar: str) -> None:
         async with self.begin():
-            # Убираем префикс, расширение .png и лишние пробелы из имени файла
+            # Прибираємо префікс, розширення .png та зайві пробіли з імені файлу
             avatar_name = avatar.split('_', 1)[1] if '_' in avatar else avatar
-            avatar_name = avatar_name.strip()  # Убираем пробелы в начале и конце
+            avatar_name = avatar_name.strip()  # Прибираємо пробіли на початку та в кінці
             if avatar_name.endswith('.png'):
-                avatar_name = avatar_name[:-4]  # Убираем .png из конца строки
+                avatar_name = avatar_name[:-4]  # Прибираємо .png з кінця рядка
             
-            # Проверяем существует ли пользователь
+            # Перевіряємо, чи існує користувач
             user = await self.session.scalar(
                 select(User).where(User.tg_id == tg_id)
             )
             
             if user:
-                # Если пользователь существует - обновляем
+                # Якщо користувач існує - оновлюємо
                 await self.session.execute(
                     update(User)
                     .where(User.tg_id == tg_id)
@@ -63,7 +63,7 @@ class ProfileRepository(BaseRepository):
                     )
                 )
             else:
-                # Если пользователя нет - создаем
+                # Якщо користувача немає - створюємо
                 unix_time = int(time.time())
                 new_user = User(
                     tg_id=tg_id,
@@ -97,26 +97,26 @@ class ProfileRepository(BaseRepository):
     
     async def get_users_with_incompleted_habits(self) -> Dict[int, List[Habit]]:
         async with self.begin():
-            # Текущий день недели (0 - понедельник, 6 - воскресенье)
+            # Поточний день тижня (0 - понеділок, 6 - неділя)
             current_day = datetime.today().weekday()
             
-            # Создаем запрос, который выбирает пользователей и их привычки
+            # Створюємо запит, який вибирає користувачів та їхні звички
             query = (
                 select(User, Habit)
-                .join(Habit, User.id == Habit.user)  # Соединяем User и Habit
+                .join(Habit, User.id == Habit.user)  # З'єднуємо User та Habit
                 .where(
-                    User.is_active == True,  # Только активные пользователи
-                    Habit.status == False    # Только незавершенные привычки
+                    User.is_active == True,  # Тільки активні користувачі
+                    Habit.status == False    # Тільки незавершені звички
                 )
             )
             
             result = await self.session.execute(query)
-            rows = result.all()  # Получаем все строки результата
+            rows = result.all()  # Отримуємо всі рядки результату
 
-            # Группируем привычки по пользователям
+            # Групуємо звички за користувачами
             users_habits_dict = {}
             for user, habit in rows:
-                # Проверяем, актуальна ли привычка для текущего дня
+                # Перевіряємо, чи актуальна звичка для поточного дня
                 if len(habit.days_of_week) == 7 and habit.days_of_week[current_day] == '1':
                     if user.tg_id not in users_habits_dict:
                         users_habits_dict[user.tg_id] = []
@@ -128,13 +128,13 @@ class ProfileRepository(BaseRepository):
     
     async def get_users_today_activity(self) -> Dict[int, Dict[str, List]]:
         async with self.begin():
-            # Словарь для хранения активностей пользователей
+            # Словник для зберігання активностей користувачів
             users_activity_dict = {}
 
-            # Текущий день недели (0 - понедельник, 6 - воскресенье)
+            # Поточний день тижня (0 - понеділок, 6 - неділя)
             current_day = datetime.today().weekday()
 
-            # Запрос для получения незавершенных привычек
+            # Запит для отримання незавершених звичок
             habits_query = (
                 select(User.tg_id, Habit)
                 .join(Habit, User.id == Habit.user)
@@ -145,13 +145,13 @@ class ProfileRepository(BaseRepository):
             )
             habits_result = await self.session.execute(habits_query)
             for tg_id, habit in habits_result:
-                # Проверяем, актуальна ли привычка для текущего дня
+                # Перевіряємо, чи актуальна звичка для поточного дня
                 if len(habit.days_of_week) == 7 and habit.days_of_week[current_day] == '1':
                     if tg_id not in users_activity_dict:
                         users_activity_dict[tg_id] = {"habits": [], "tasks": []}
                     users_activity_dict[tg_id]["habits"].append(habit)
 
-            # Запрос для получения незавершенных задач
+            # Запит для отримання незавершених завдань
             tasks_query = (
                 select(User.tg_id, Task)
                 .join(Task, User.id == Task.user)
@@ -190,7 +190,7 @@ class ProfileRepository(BaseRepository):
 
 
 ################################################
-"""Функции-обертки для обратной совместимости"""
+"""Функції-обгортки для зворотної сумісності"""
 ################################################
 
 async def setUser(tg_id: int) -> Optional[User]:
